@@ -178,12 +178,12 @@ int getline(const char* s, int length, std::vector<std::string>& line, const cha
     return 0;
 }
 
-int load(std::vector<action_t> &actions, std::vector<int>& box, std::map<std::string, int> &namemap, std::vector<std::string> &names) {
+int load(const char *filename,std::vector<action_t> &actions, std::vector<int>& box, std::map<std::string, int> &namemap, std::vector<std::string> &names,int damageonly) {
     FILE* fi;
     char* ficon;
     int ficount;
     std::vector<std::string> line;
-    if (!fopen_s(&fi, "D:/files/data/pcr/team/test.txt", "rb")) {
+    if (!fopen_s(&fi, filename, "rb")) {
         fseek(fi, 0, SEEK_END);
         ficount = ftell(fi);
         fseek(fi, 0, SEEK_SET);
@@ -212,6 +212,9 @@ int load(std::vector<action_t> &actions, std::vector<int>& box, std::map<std::st
             if (line1.size() > 7) {
                 action.note = line1[7];
             }
+            if (damageonly) {
+                s = fmin(s, 1.0);
+            }
             action.point = p * s;
             actions.push_back(action);
         }
@@ -233,13 +236,33 @@ int load(std::vector<action_t> &actions, std::vector<int>& box, std::map<std::st
     return 0;
 }
 
-int main() {
+int main(int argc,char** argv) {
+    const char* filename = "d:/files/data/pcr/text.txt";
+    int maxoutput = 10;
+    int damageonly = 0;
+
+    if (argc > 1) {
+        filename = argv[1];
+    }
+
+    for (int i = 2; i < argc; i++) {
+        if (!strcmp(argv[i], "-n")) {
+            i++;
+            if (i < argc) {
+                sscanf_s(argv[i], "%d", &maxoutput);
+            }
+        }
+        if (!strcmp(argv[i], "-damageonly")) {
+            damageonly = 1;
+        }
+    }
+
     std::vector<int> box;
     std::vector<int> buffer;
     std::map<std::string, int> namemap;
     std::vector<std::string> names; 
     std::vector<action_t> actions;
-    load(actions, box, namemap, names);
+    load(filename, actions, box, namemap, names, damageonly);
     
     std::vector<assign_t> as;
     for (int i = 0; i < actions.size(); i++) {
@@ -263,7 +286,7 @@ int main() {
             printf("\n");
 
             outputcount++;
-            if (outputcount > 10) {
+            if (outputcount >=maxoutput) {
                 return 0;
             }
         }
